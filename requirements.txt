@@ -1,0 +1,11 @@
+
+fastapi==0.115.4
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+pydantic-settings==2.6.1
+numpy
+torch
+transformers
+sentence-transformers
+faiss-cpu
+prometheus-client
