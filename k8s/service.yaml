@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-platform-demo-svc
+  labels:
+    app: ai-platform-demo-gpu
+spec:
+  type: ClusterIP
+  selector:
+    app: ai-platform-demo-gpu
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000

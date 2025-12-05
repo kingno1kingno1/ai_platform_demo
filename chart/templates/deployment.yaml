@@ -1,0 +1,57 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ai-platform-demo.fullname" . }}
+  labels:
+    app: {{ include "ai-platform-demo.name" . }}
+    {{- include "ai-platform-demo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "ai-platform-demo.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "ai-platform-demo.name" . }}
+        {{- include "ai-platform-demo.labels" . | nindent 8 }}
+    spec:
+      {{- if .Values.gpu.enabled }}
+      nodeSelector:
+        {{- range $k, $v := .Values.gpu.nodeSelector }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: ai-platform-demo
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: USE_GPU
+              value: "{{ .Values.env.USE_GPU }}"
+          resources:
+            requests:
+{{- toYaml .Values.resources.requests | nindent 14 }}
+{{- if .Values.gpu.enabled }}
+{{- toYaml .Values.gpu.resources.requests | nindent 14 }}
+{{- end }}
+            limits:
+{{- toYaml .Values.resources.limits | nindent 14 }}
+{{- if .Values.gpu.enabled }}
+{{- toYaml .Values.gpu.resources.limits | nindent 14 }}
+{{- end }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 20

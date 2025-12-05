@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-platform-demo-gpu
+  labels:
+    app: ai-platform-demo-gpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-platform-demo-gpu
+  template:
+    metadata:
+      labels:
+        app: ai-platform-demo-gpu
+    spec:
+      nodeSelector:
+        accelerator: nvidia
+      containers:
+        - name: app
+          image: your-registry/ai-platform-demo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: USE_GPU
+              value: "true"
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+              nvidia.com/gpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
